@@ -1,2 +1,9 @@
+
 suspicious-activity-detection/
 models/ 
+/venv/
+/surveillanceVideosDataset/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+*.log
