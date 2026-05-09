@@ -6,20 +6,22 @@ venv/
 config/
 
 # Dataset
+data/
 surveillanceVideosDataset/
+models/
+config/
 
 # Metadata / generated files
 datasetInfo.xlsx
 activity_videos.json
 sampled_videos.json
+Notes
+
 
 # Python cache
 __pycache__/
+src/__pycache__
+src/ml/__pycache__
+src/vision/__pycache__
 *.pyc
 
-# Jupyter
-.ipynb_checkpoints/
-
-# OS files
-.DS_Store
-Thumbs.db

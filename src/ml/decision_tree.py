@@ -1,9 +1,25 @@
+"""
+src/ml/decision_tree.py
+========================
+CART decision tree implemented from scratch.
+Used as the base learner inside RandomForest.
+
+Splits nodes on information gain (entropy reduction).
+Pruned by max_depth and min_samples_split.
+Each split considers only a random subset of n_features features.
+
+Inherits BaseEstimator so it is compatible with sklearn Pipeline
+and cross_val_score without manual __sklearn_tags__ boilerplate.
+"""
+
 import numpy as np
 from sklearn.base import BaseEstimator
 
+
 class DecisionTree(BaseEstimator):
-    def __init__(self, min_samples_split=2, max_depth=100, n_features=None,
-                 random_state=42):
+
+    def __init__(self, min_samples_split=2, max_depth=100,
+                 n_features=None, random_state=42):
         self.min_samples_split = min_samples_split
         self.max_depth         = max_depth
         self.n_features        = n_features
@@ -22,16 +38,16 @@ class DecisionTree(BaseEstimator):
         return self
 
     def grow(self, X, y, depth, rng):
-        n_samples = X.shape[0]
-        n_labels  = len(np.unique(y))
-
+        # Guard: never recurse into an empty partition
+        if X.shape[0] == 0:
+            return {"leaf": True, "value": 0}
         if (depth >= self.max_depth or
-                n_labels == 1 or
-                n_samples < self.min_samples_split):
+                len(np.unique(y)) == 1 or
+                X.shape[0] < self.min_samples_split):
             return {"leaf": True, "value": self.majority(y)}
 
-        feat_idxs           = rng.choice(self.n_total_features,
-                                          self.n_split_features, replace=False)
+        feat_idxs = rng.choice(self.n_total_features,
+                               self.n_split_features, replace=False)
         best_feat, best_thr = self.best_split(X, y, feat_idxs)
 
         if best_feat is None:
@@ -44,8 +60,8 @@ class DecisionTree(BaseEstimator):
             "leaf":      False,
             "feature":   best_feat,
             "threshold": best_thr,
-            "left":      self.grow(X[left_mask],  y[left_mask],  depth + 1, rng),
-            "right":     self.grow(X[right_mask], y[right_mask], depth + 1, rng),
+            "left":  self.grow(X[left_mask],  y[left_mask],  depth + 1, rng),
+            "right": self.grow(X[right_mask], y[right_mask], depth + 1, rng),
         }
 
     def best_split(self, X, y, feat_idxs):
@@ -61,7 +77,8 @@ class DecisionTree(BaseEstimator):
     def info_gain(self, y, col, thr):
         left_mask  = col <= thr
         right_mask = ~left_mask
-        if not left_mask.any() or not right_mask.any():
+        # Both sides must have at least one sample to be a valid split
+        if left_mask.sum() < 1 or right_mask.sum() < 1:
             return 0.0
         n   = len(y)
         n_l = left_mask.sum()
@@ -76,6 +93,8 @@ class DecisionTree(BaseEstimator):
         return -np.sum(ps[ps > 0] * np.log(ps[ps > 0]))
 
     def majority(self, y):
+        if len(y) == 0:
+            return 0   # fallback — should not occur with a guarded grow()
         return int(np.bincount(y).argmax())
 
     def predict(self, X):
@@ -89,6 +108,7 @@ class DecisionTree(BaseEstimator):
         return self.traverse(x, node["right"])
 
     def compute_importances(self, n_features):
+        """Count how many times each feature index is used as a split."""
         importances = np.zeros(n_features)
         self.accumulate(self.root, importances)
         return importances

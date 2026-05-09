@@ -31,7 +31,7 @@ from PyQt5.QtWidgets import (
     QComboBox, QProgressBar
 )
 
-import settings as cfg
+import config as cfg
 from vision.pipeline import process_video
 from ml.features     import extract_all_features, aggregate_video_features, FEATURE_NAMES
 from ml.classifier   import ActivityClassifier, build_sklearn_pipelines, build_all_pipelines
