@@ -1,0 +1,25 @@
+# Python virtual environment
+venv/
+.env/
+
+# Configs
+config/
+
+# Dataset
+surveillanceVideosDataset/
+
+# Metadata / generated files
+datasetInfo.xlsx
+activity_videos.json
+sampled_videos.json
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
