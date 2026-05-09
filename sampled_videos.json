@@ -1,0 +1,130 @@
+{
+    "Fighting in Group (FG)__Exposure (Exp)": [
+        "4254Exp_IndFG_HQ_C2.mp4",
+        "0828Exp_IndFG_MQ_C1.mp4"
+    ],
+    "Fighting in Group (FG)__Focus (Fo)": [
+        "0842Fo_IndFG_LQ_C1.mp4",
+        "2585Fo_IndFG_MQ_C1.mp4"
+    ],
+    "Fighting in Group (FG)__Focus and Exposure(ExFo)": [
+        "1752ExFo_OutFG_MQ_C3.mp4",
+        "1747ExFo_OutFG_HQ_C2.mp4"
+    ],
+    "Fighting in Group (FG)__Pristine (Pri)": [
+        "1658Pri_OutFG_C2.mp4",
+        "3339Pri_OutFG_C4.mp4"
+    ],
+    "Leaving Package in a Public Place (LPP)__Exposure (Exp)": [
+        "0186Exp_IndLPP_LQ_C1.mp4",
+        "3597Exp_IndLPP_LQ_C4.mp4"
+    ],
+    "Leaving Package in a Public Place (LPP)__Focus (Fo)": [
+        "3599Fo_IndLPP_HQ_C2.mp4",
+        "0224Fo_IndLPP_LQ_C3.mp4"
+    ],
+    "Leaving Package in a Public Place (LPP)__Focus and Exposure(ExFo)": [
+        "3644ExFo_IndLPP_LQ_C3.mp4",
+        "2809ExFo_OutLPP_HQ_C4.mp4"
+    ],
+    "Leaving Package in a Public Place (LPP)__Pristine (Pri)": [
+        "0006Pri_IndLPP_MQ_C3.mp4",
+        "0005Pri_IndLPP_MQ_C4.mp4"
+    ],
+    "Passing Out (PO)__Exposure (Exp)": [
+        "0488Exp_IndPO_HQ_C4.mp4",
+        "1343Exp_OutPO_LQ_C4.mp4"
+    ],
+    "Passing Out (PO)__Focus (Fo)": [
+        "1391Fo_OutPO_LQ_C4.mp4",
+        "3079Fo_OutPO_HQ_C1.mp4"
+    ],
+    "Passing Out (PO)__Focus and Exposure(ExFo)": [
+        "3981ExFo_IndPO_HQ_C2.mp4",
+        "0551ExFo_IndPO_MQ_C3.mp4"
+    ],
+    "Passing Out (PO)__Pristine (Pri)": [
+        "3892Pri_IndPO_C1.mp4",
+        "0472Pri_IndPO_C4.mp4"
+    ],
+    "Person Pushing Person (PPP)__Exposure (Exp)": [
+        "4465Exp_OutPPP_MQ_C1.mp4",
+        "4032Exp_IndPPP_HQ_C4.mp4"
+    ],
+    "Person Pushing Person (PPP)__Focus (Fo)": [
+        "3192Fo_OutPPP_LQ_C3.mp4",
+        "3160Fo_OutPPP_HQ_C3.mp4"
+    ],
+    "Person Pushing Person (PPP)__Focus and Exposure(ExFo)": [
+        "1536ExFo_OutPPP_LQ_C1.mp4",
+        "3204ExFo_OutPPP_LQ_C3.mp4"
+    ],
+    "Person Pushing Person (PPP)__Pristine (Pri)": [
+        "4436Pri_OutPPP_MQ_C4.mp4",
+        "2319Pri_IndPPP_C2.mp4"
+    ],
+    "Person Running (PR)__Exposure (Exp)": [
+        "0022Exp_IndPR_MQ_C3.mp4",
+        "0409Exp_IndPR_LQ_C1.mp4"
+    ],
+    "Person Running (PR)__Focus (Fo)": [
+        "2971Fo_OutPR_MQ_C1.mp4",
+        "2152Fo_IndPR_MQ_C3.mp4"
+    ],
+    "Person Running (PR)__Focus and Exposure(ExFo)": [
+        "2181ExFo_IndPR_LQ_C4.mp4",
+        "1308ExFo_OutPR_HQ_C4.mp4"
+    ],
+    "Person Running (PR)__Pristine (Pri)": [
+        "0376Pri_IndPR_C4.mp4",
+        "2094Pri_IndPR_C1.mp4"
+    ],
+    "Prowl (PW)__Exposure (Exp)": [
+        "0077Exp_IndPW_LQ_C3.mp4",
+        "0074Exp_IndPW_MQ_C4.mp4"
+    ],
+    "Prowl (PW)__Focus (Fo)": [
+        "1823Fo_IndPW_HQ_C2.mp4",
+        "0115Fo_IndPW_HQ_C1.mp4"
+    ],
+    "Prowl (PW)__Focus and Exposure(ExFo)": [
+        "1853ExFo_IndPW_MQ_C4.mp4",
+        "1850ExFo_IndPW_MQ_C1.mp4"
+    ],
+    "Prowl (PW)__Pristine (Pri)": [
+        "1759Pri_IndPW_C2.mp4",
+        "0052Pri_IndPW_C2.mp4"
+    ],
+    "Robbery with Knife (RK)__Exposure (Exp)": [
+        "3245Exp_OutRK_HQ_C1.mp4",
+        "3265Exp_OutRK_LQ_C1.mp4"
+    ],
+    "Robbery with Knife (RK)__Focus (Fo)": [
+        "0759Fo_IndRK_LQ_C2.mp4",
+        "2497Fo_IndRK_HQ_C4.mp4"
+    ],
+    "Robbery with Knife (RK)__Focus and Exposure(ExFo)": [
+        "0781ExFo_IndRK_LQ_C1.mp4",
+        "3334ExFo_OutRK_LQ_C2.mp4"
+    ],
+    "Robbery with Knife (RK)__Pristine (Pri)": [
+        "2432Pri_IndRK_C3.mp4",
+        "4442Pri_OutRK_MQ_C2.mp4"
+    ],
+    "Walking (WL)__Exposure (Exp)": [
+        "3685Exp_IndWL_HQ_C1.mp4",
+        "2001Exp_IndWL_HQ_C4.mp4"
+    ],
+    "Walking (WL)__Focus (Fo)": [
+        "3718Fo_IndWL_LQ_C2.mp4",
+        "1162Fo_OutWL_HQ_C2.mp4"
+    ],
+    "Walking (WL)__Focus and Exposure(ExFo)": [
+        "0367ExFo_IndWL_MQ_C2.mp4",
+        "0361ExFo_IndWL_LQ_C4.mp4"
+    ],
+    "Walking (WL)__Pristine (Pri)": [
+        "0277Pri_IndWL_C4.mp4",
+        "1114Pri_OutWL_C2.mp4"
+    ]
+}
