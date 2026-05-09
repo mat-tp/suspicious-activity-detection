@@ -23,3 +23,11 @@ __pycache__/
 # OS files
 .DS_Store
 Thumbs.db
+suspicious-activity-detection/
+models/ 
+/venv/
+/surveillanceVideosDataset/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+*.log
