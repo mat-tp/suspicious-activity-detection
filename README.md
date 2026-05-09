@@ -1,8 +1,8 @@
 # Detection of Suspicious Activities in Public Spaces
 
-### Tshephang Phuti-A-Nkutu Matlala — 223004635
+### Tshephang P-A-N Matlala
 
-#### University of Johannesburg — Department of Computer Science and Software Engineering
+#### University of Johannesburg — ACSSE
 
 ---
 
