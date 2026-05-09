@@ -11,6 +11,7 @@ surveillanceVideosDataset/
 # Metadata / generated files
 datasetInfo.xlsx
 activity_videos.json
+sampled_videos.json
 
 # Python cache
 __pycache__/
