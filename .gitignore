@@ -11,7 +11,6 @@ surveillanceVideosDataset/
 # Metadata / generated files
 datasetInfo.xlsx
 activity_videos.json
-sampled_videos.json
 
 # Python cache
 __pycache__/
@@ -23,11 +22,3 @@ __pycache__/
 # OS files
 .DS_Store
 Thumbs.db
-suspicious-activity-detection/
-models/ 
-/venv/
-/surveillanceVideosDataset/
-__pycache__/
-*.py[cod]
-.ipynb_checkpoints/
-*.log
