@@ -17,6 +17,13 @@ activity_videos.json
 sampled_videos.json
 Notes
 
+# Notes
+src/Notes/
+src/debug_single_video.py
+
+# Configs
+config/
+
 
 # Python cache
 __pycache__/
