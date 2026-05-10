@@ -7,6 +7,7 @@ config/
 
 # Dataset
 data/
+docs/
 surveillanceVideosDataset/
 models/
 config/

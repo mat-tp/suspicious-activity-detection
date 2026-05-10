@@ -1,41 +1,24 @@
 """
-train_and_evaluate.py
-======================
-Entry point — headless feature extraction + classifier training.
+CLI entry point: extract features and train activity / distortion classifiers.
 
-Usage
------
-    python train_and_evaluate.py                            # all videos, MOG2
-    python train_and_evaluate.py --sample                  # 5 videos/group
-    python train_and_evaluate.py --sample --n 10           # 10 videos/group
-    python train_and_evaluate.py --use-gt                  # GT bboxes → tracker
-    python train_and_evaluate.py --save-model models/      # save after training
-    python train_and_evaluate.py --sklearn-only            # skip custom RF (faster)
-
-Comparison experiment
----------------------
-Run twice and compare results:
-
-    python train_and_evaluate.py --save-model models/mog2/
-    python train_and_evaluate.py --use-gt --save-model models/gt/
-
-This directly answers the research question: how much does using the
-dataset's own GT bounding boxes improve activity classification compared
-to MOG2 detection?
+Usage:
+  python train_and_evaluate.py [--sample] [--n N] [--use-gt] [--save-model DIR] [--sklearn-only]
 """
 
 import argparse
-import sys
 import random
+import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+# Ensure the project root is on sys.path
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
 import pandas as pd
 import config as cfg
-from vision.pipeline import process_video
-from ml.features     import extract_all_features, aggregate_video_features, to_dataframe
-from ml.classifier   import ActivityClassifier, build_sklearn_pipelines, build_all_pipelines
+from src.vision.pipeline import process_video
+from src.ml.features     import extract_all_features, aggregate_video_features, to_dataframe
+from src.ml.classifier   import ActivityClassifier, build_sklearn_pipelines, build_all_pipelines
 
 
 def load_dataset(excel_path=None):
@@ -49,16 +32,7 @@ def load_dataset(excel_path=None):
 
 
 def collect_video_features(df, use_sample, n_per_group, use_gt):
-    """
-    Process videos and return a list of VIDEO-LEVEL feature dicts.
-    One dict per video — tracks aggregated via aggregate_video_features().
-    Videos yielding no valid tracks are skipped.
-
-    Parameters
-    ----------
-    use_gt : if True, pass use_gt=True to process_video() so GT bboxes
-             drive the tracker instead of MOG2 detections.
-    """
+    """Process videos and return a list of video‑level feature dicts."""
     random.seed(cfg.RANDOM_SEED)
 
     groups = {}
@@ -78,7 +52,7 @@ def collect_video_features(df, use_sample, n_per_group, use_gt):
 
     for (activity, distortion), video_names in groups.items():
         for vname in video_names:
-            vpath = Path(cfg.VIDEO_DIR) / vname
+            vpath = cfg.VIDEO_DIR / vname
             processed += 1
 
             if not vpath.exists():
@@ -116,77 +90,70 @@ def collect_video_features(df, use_sample, n_per_group, use_gt):
 
 
 def main():
+
     parser = argparse.ArgumentParser(
         description="Extract features and train activity classifiers.")
-    parser.add_argument(
-        "--sample", action="store_true",
-        help="Use a random subset of videos per (Activity, Distortion) group.")
-    parser.add_argument(
-        "--n", type=int, default=cfg.N_RANDOM_VIDEOS_PER_GROUP, metavar="N",
-        help=f"Videos per group when --sample is set "
-             f"(default: {cfg.N_RANDOM_VIDEOS_PER_GROUP}).")
-    parser.add_argument(
-        "--use-gt", action="store_true",
-        help="Use AD-SVD ground-truth bounding boxes to drive the tracker "
-             "instead of MOG2 detections. Falls back to MOG2 if no GT file "
-             "exists for a video. Compare results with and without this flag "
-             "to quantify the impact of detection quality on classification.")
-    parser.add_argument(
-        "--save-model", type=str, default=None, metavar="DIR",
-        help="Save trained models to DIR as activity.pkl and distortion.pkl.")
-    parser.add_argument(
-        "--sklearn-only", action="store_true",
-        help="Skip custom Random Forest (faster for quick iterations).")
+    parser.add_argument("--sample", action="store_true",
+                        help="Use a random subset of videos per group.")
+    parser.add_argument("--n", type=int, default=cfg.N_RANDOM_VIDEOS_PER_GROUP,
+                        metavar="N",
+                        help="Videos per group when --sample is set.")
+    parser.add_argument("--use-gt", action="store_true",
+                        help="Use AD‑SVD GT bboxes to drive the tracker.")
+    parser.add_argument("--save-model", type=str, default=None, metavar="DIR",
+                        help="Save trained models into DIR.")
+    parser.add_argument("--sklearn-only", action="store_true",
+                        help="Skip custom Random Forest for speed.")
     args = parser.parse_args()
 
     df = load_dataset()
+
     print(f"Dataset loaded: {len(df)} videos, "
           f"{df['Activity'].nunique()} activities, "
           f"{df['Distortion'].nunique()} distortions.\n")
 
     print("Extracting features...")
-    video_features = collect_video_features(
-        df,
-        use_sample = args.sample,
-        n_per_group = args.n,
-        use_gt      = args.use_gt,
-    )
+    video_features = collect_video_features(df, use_sample = args.sample, n_per_group = args.n, use_gt = args.use_gt)
 
     if not video_features:
         print("\nNo video features extracted — check video paths.")
         sys.exit(1)
 
     feat_df = to_dataframe(video_features)
-    print(f"\nVideo-level feature matrix: "
-          f"{feat_df.shape[0]} videos × {feat_df.shape[1]} columns")
-    print(f"Activity distribution:\n"
-          f"{feat_df['activity'].value_counts().to_string()}")
-    print(f"\nDistortion distribution:\n"
-          f"{feat_df['distortion'].value_counts().to_string()}")
 
-    pipelines = (build_sklearn_pipelines() if args.sklearn_only
-                 else build_all_pipelines())
+    print(f"\nVideo‑level feature matrix: {feat_df.shape[0]} videos × {feat_df.shape[1]} columns")
+    print(f"Activity distribution:\n{feat_df['activity'].value_counts().to_string()}")
+    print(f"\nDistortion distribution:\n{feat_df['distortion'].value_counts().to_string()}")
+
+    pipelines = (build_sklearn_pipelines() if args.sklearn_only else build_all_pipelines())
+
+    save_plots = cfg.PLOTS_DIR if args.save_model else None
 
     # Activity classifier
     clf_activity = ActivityClassifier()
     print("\n" + "=" * 60)
     print("  Classifying by ACTIVITY")
-    clf_activity.fit_and_evaluate(
-        video_features, target_col="activity", pipelines=pipelines)
+    clf_activity.fit_and_evaluate(video_features, target_col="activity", pipelines=pipelines, save_dir=save_plots)
 
     # Distortion classifier
     clf_distortion = ActivityClassifier()
     print("\n" + "=" * 60)
     print("  Classifying by DISTORTION")
-    clf_distortion.fit_and_evaluate(
-        video_features, target_col="distortion", pipelines=pipelines)
+    clf_distortion.fit_and_evaluate(video_features, target_col="distortion", pipelines=pipelines, save_dir=save_plots)
 
-    # Save models
     if args.save_model:
-        save_dir = Path(args.save_model)
-        clf_activity.save(save_dir / "activity.pkl",     target_col="activity")
-        clf_distortion.save(save_dir / "distortion.pkl", target_col="distortion")
-        print(f"\nModels saved to {save_dir.resolve()}")
+
+        models_dir = cfg.MODEL_DIR
+        plots_dir  = cfg.PLOTS_DIR
+
+        models_dir.mkdir(parents=True, exist_ok=True)
+        plots_dir.mkdir(parents=True, exist_ok=True)
+
+        clf_activity.save(models_dir / "activity.pkl",  target_col="activity")
+        clf_distortion.save(models_dir / "distortion.pkl", target_col="distortion")
+        
+        print(f"\nModels saved to : {models_dir.resolve()}")
+        print(f"Plots saved to  : {plots_dir.resolve()}")
 
     print("\nDone.")
 
