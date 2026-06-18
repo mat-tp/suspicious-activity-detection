@@ -1,0 +1,137 @@
+experiment:
+  name: default
+  description: ''
+  group: A
+  seed: 42
+paths:
+  data_dir: data
+  video_dir: data/surveillanceVideosDataset/surveillanceVideos
+  gt_dir: data/surveillanceVideosDataset/surveillanceVideosGT
+  dataset_excel: data/datasetInfo.xlsx
+  model_dir: models
+  plots_dir: plots
+  experiments_dir: experiments
+  outputs_dir: outputs
+dataset:
+  activity_labels:
+  - LPP
+  - PO
+  - PW
+  - PPP
+  - RK
+  - FG
+  - PR
+  - WL
+  distortion_types:
+  - Pri
+  - Exp
+  - Fo
+  - ExFo
+  n_random_videos_per_group: 5
+preprocessing:
+  type: standard
+  frame_resize:
+  - 640
+  - 480
+  blur_kernel:
+  - 5
+  - 5
+  blur_sigma: 0
+  distortion_aware:
+    blur_threshold: 100.0
+    exposure_low: 60.0
+    exposure_high: 195.0
+    enhancement_for_blur: unsharp_mask
+    enhancement_for_exposure: clahe
+    unsharp_sigma: 2.0
+    unsharp_strength: 1.5
+    clahe_clip_limit: 2.0
+    clahe_tile_grid:
+    - 8
+    - 8
+    bilateral_d: 9
+    bilateral_sigma_color: 75
+    bilateral_sigma_space: 75
+detection:
+  type: mog2
+  mog2:
+    history: 20
+    var_threshold: 25
+    detect_shadows: false
+  morphology:
+    close_iter: 2
+    open_iter: 1
+  min_contour_area: 500
+  ground_truth:
+    fallback_to_mog2: true
+tracking:
+  type: iou_hungarian
+  max_disappeared: 30
+  max_trajectory_len: 300
+  min_trajectory_len: 30
+  iou_hungarian:
+    iou_threshold: 0.3
+optical_flow:
+  lk_win_size:
+  - 15
+  - 15
+  lk_max_level: 2
+  lk_criteria_eps: 0.03
+  lk_criteria_count: 10
+  max_corners: 200
+  corner_quality: 0.3
+  corner_min_dist: 7
+features:
+  modules:
+  - trajectory
+  aggregation:
+  - mean
+  - max
+  - std
+models:
+  active:
+  - name: random_forest_sklearn
+    params:
+      n_estimators: 200
+      max_depth: null
+      class_weight: balanced
+  - name: svm_rbf
+    params:
+      C: 10
+      gamma: scale
+      class_weight: balanced
+  - name: knn
+    params:
+      n_neighbors: 5
+      metric: euclidean
+  - name: random_forest_custom
+    params:
+      n_trees: 200
+      max_depth: 10
+      min_samples_split: 2
+  - name: lightgbm
+    params:
+      n_estimators: 200
+      max_depth: 6
+      learning_rate: 0.1
+training:
+  train_size: 0.7
+  val_size: 0.15
+  test_size: 0.15
+  cv_folds: 5
+  stratify: true
+targets:
+- activity
+- distortion
+data_path: tabular
+clip:
+  clip_len: 16
+  frame_size:
+  - 112
+  - 112
+  sampling: uniform
+embedding:
+  backbone: resnet18_2d
+  pretrained: false
+  embedding_dim: 512
+  pooling: mean

@@ -1,0 +1,13 @@
+extends: base.yaml
+experiment:
+  name: group_a_classical_baseline
+  description: 'Classical CV pipeline: MOG2 + IoU+Hungarian + Trajectory features
+    + RF/SVM/LightGBM'
+  group: A
+tracking:
+  type: iou_hungarian
+  iou_hungarian:
+    iou_threshold: 0.3
+features:
+  modules:
+  - trajectory

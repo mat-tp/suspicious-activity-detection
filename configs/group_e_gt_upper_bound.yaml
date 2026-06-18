@@ -1,0 +1,29 @@
+extends: base.yaml
+experiment:
+  name: group_e_ground_truth_upper_bound
+  description: GT bounding boxes + IoU tracker + full features
+  group: E
+detection:
+  type: ground_truth
+  ground_truth:
+    fallback_to_mog2: true
+features:
+  modules:
+  - trajectory
+  - circular_motion
+  - kinematics
+  - shape
+  - wavelet
+  - interaction
+models:
+  active:
+  - name: random_forest_sklearn
+    params:
+      n_estimators: 200
+      max_depth: null
+      class_weight: balanced
+  - name: lightgbm
+    params:
+      n_estimators: 200
+      max_depth: 6
+      learning_rate: 0.1

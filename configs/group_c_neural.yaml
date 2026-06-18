@@ -1,0 +1,12 @@
+extends: base.yaml
+experiment:
+  name: group_c_neural_baselines
+  description: Neural video models on frame clips
+  group: C
+data_path: clip
+features:
+  modules: []
+models:
+  active: []
+targets:
+- activity

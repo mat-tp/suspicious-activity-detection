@@ -1,0 +1,17 @@
+extends: base.yaml
+experiment:
+  name: legacy_centroid_reference
+  description: Legacy centroid tracker reference for regression testing
+  group: REF
+tracking:
+  type: centroid
+features:
+  modules:
+  - trajectory
+models:
+  active:
+  - name: random_forest_sklearn
+    params:
+      n_estimators: 200
+      max_depth: null
+      class_weight: balanced

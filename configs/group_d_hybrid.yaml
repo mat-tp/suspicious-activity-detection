@@ -1,0 +1,25 @@
+extends: base.yaml
+experiment:
+  name: group_d_hybrid_fusion
+  description: Hybrid handcrafted + CNN embedding fusion
+  group: D
+preprocessing:
+  type: distortion_aware
+features:
+  modules:
+  - trajectory
+  - circular_motion
+  - kinematics
+  - shape
+  - wavelet
+  - interaction
+models:
+  active:
+  - name: lightgbm
+    params:
+      n_estimators: 200
+      max_depth: 6
+      learning_rate: 0.1
+targets:
+- activity
+- distortion
