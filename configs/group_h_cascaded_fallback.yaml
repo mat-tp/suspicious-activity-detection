@@ -1,0 +1,63 @@
+extends: base.yaml
+
+experiment:
+  name: group_h_cascaded_fallback
+  description: >
+    MOG2 → Dense Optical Flow → Frame Differencing cascade.
+    Maximises detection coverage without ground truth.
+    Each fallback triggers when the current detector fails to produce enough detections.
+  group: H
+
+preprocessing:
+  type: standard
+  enabled: true
+  distortion_aware: false
+
+detection:
+  type: cascaded_fallback
+  cascaded_fallback:
+    mog2_history: 20
+    mog2_var_threshold: 25
+    flow_magnitude_threshold: 2.0
+    flow_adaptive_threshold: true
+    diff_threshold: 25
+    min_contour_area: 500
+    morph_close_iter: 2
+    morph_open_iter: 1
+    warmup_frames: 10
+    min_detections_per_warmup: 3
+
+tracking:
+  type: iou_hungarian
+  iou_hungarian:
+    iou_threshold: 0.3
+
+features:
+  modules:
+    - trajectory
+    - circular_motion
+    - kinematics
+    - shape
+    - interaction
+
+models:
+  active:
+    - name: random_forest_sklearn
+      params:
+        n_estimators: 200
+        max_depth: null
+        class_weight: balanced
+    - name: lightgbm
+      params:
+        n_estimators: 200
+        max_depth: 6
+        learning_rate: 0.1
+    - name: xgboost
+      params:
+        n_estimators: 200
+        max_depth: 6
+        learning_rate: 0.1
+
+targets:
+  - activity
+  - distortion

@@ -1,27 +1,44 @@
 extends: base.yaml
+
 experiment:
   name: group_b_distortion_aware_classical
-  description: Distortion-aware enhancement + full handcrafted feature set + RF/LightGBM
+  description: >
+    Distortion-aware preprocessing + full handcrafted feature set.
+    PRIMARY contribution group — compares against Group A (standard preprocessing)
+    to isolate the benefit of distortion-aware enhancement.
   group: B
+
 preprocessing:
   type: distortion_aware
+  # distortion_aware_params inherited from base.yaml — no need to repeat them.
+
 features:
   modules:
-  - trajectory
-  - circular_motion
-  - kinematics
-  - shape
-  - wavelet
-  - interaction
+    - trajectory
+    - circular_motion
+    - kinematics
+    - shape
+    - wavelet
+    - interaction
+
+# RF + LGB are the primary models for this group (per paper design).
+# xgboost added for completeness of the leaderboard comparison.
 models:
   active:
-  - name: random_forest_sklearn
-    params:
-      n_estimators: 200
-      max_depth: null
-      class_weight: balanced
-  - name: lightgbm
-    params:
-      n_estimators: 200
-      max_depth: 6
-      learning_rate: 0.1
+    - name: random_forest_sklearn
+      params:
+        n_estimators: 200
+        max_depth: null
+        class_weight: balanced
+    - name: lightgbm
+      params:
+        n_estimators: 200
+        max_depth: 6
+        learning_rate: 0.1
+        num_leaves: 31
+        class_weight: balanced
+    - name: xgboost
+      params:
+        n_estimators: 200
+        max_depth: 6
+        learning_rate: 0.1

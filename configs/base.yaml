@@ -1,8 +1,9 @@
 experiment:
   name: default
-  description: ''
+  description: ""
   group: A
   seed: 42
+
 paths:
   data_dir: data
   video_dir: data/surveillanceVideosDataset/surveillanceVideos
@@ -12,32 +13,36 @@ paths:
   plots_dir: plots
   experiments_dir: experiments
   outputs_dir: outputs
+
 dataset:
   activity_labels:
-  - LPP
-  - PO
-  - PW
-  - PPP
-  - RK
-  - FG
-  - PR
-  - WL
+    - LPP
+    - PO
+    - PW
+    - PPP
+    - RK
+    - FG
+    - PR
+    - WL
   distortion_types:
-  - Pri
-  - Exp
-  - Fo
-  - ExFo
+    - Pri
+    - Exp
+    - Fo
+    - ExFo
   n_random_videos_per_group: 5
+
 preprocessing:
   type: standard
   frame_resize:
-  - 640
-  - 480
+    - 640
+    - 480
   blur_kernel:
-  - 5
-  - 5
+    - 5
+    - 5
   blur_sigma: 0
-  distortion_aware:
+  # Key name MUST be distortion_aware_params — matches build_preprocessor() in run.py.
+  # Child configs that set type: distortion_aware inherit these values automatically.
+  distortion_aware_params:
     blur_threshold: 100.0
     exposure_low: 60.0
     exposure_high: 195.0
@@ -47,11 +52,13 @@ preprocessing:
     unsharp_strength: 1.5
     clahe_clip_limit: 2.0
     clahe_tile_grid:
-    - 8
-    - 8
+      - 8
+      - 8
     bilateral_d: 9
     bilateral_sigma_color: 75
     bilateral_sigma_space: 75
+    use_multi_metric: true
+
 detection:
   type: mog2
   mog2:
@@ -64,74 +71,101 @@ detection:
   min_contour_area: 500
   ground_truth:
     fallback_to_mog2: true
+
 tracking:
   type: iou_hungarian
   max_disappeared: 30
   max_trajectory_len: 300
-  min_trajectory_len: 30
+  # 15 is relaxed from 30 — distortion-heavy videos produce shorter tracks.
+  # Group E (GT upper bound) justifies this: GT tracks are consistently longer,
+  # so 30 is appropriate there but 15 is needed for MOG2-based groups A–D.
+  min_trajectory_len: 15
   iou_hungarian:
     iou_threshold: 0.3
+
 optical_flow:
   lk_win_size:
-  - 15
-  - 15
+    - 15
+    - 15
   lk_max_level: 2
   lk_criteria_eps: 0.03
   lk_criteria_count: 10
   max_corners: 200
   corner_quality: 0.3
   corner_min_dist: 7
+
 features:
   modules:
-  - trajectory
+    - trajectory
   aggregation:
-  - mean
-  - max
-  - std
+    - mean
+    - max
+    - std
+
+# Default model set — all classical + boosting models.
+# Group-specific configs override this list when they restrict to a subset.
 models:
   active:
-  - name: random_forest_sklearn
-    params:
-      n_estimators: 200
-      max_depth: null
-      class_weight: balanced
-  - name: svm_rbf
-    params:
-      C: 10
-      gamma: scale
-      class_weight: balanced
-  - name: knn
-    params:
-      n_neighbors: 5
-      metric: euclidean
-  - name: random_forest_custom
-    params:
-      n_trees: 200
-      max_depth: 10
-      min_samples_split: 2
-  - name: lightgbm
-    params:
-      n_estimators: 200
-      max_depth: 6
-      learning_rate: 0.1
+    - name: random_forest_sklearn
+      params:
+        n_estimators: 200
+        max_depth: null
+        class_weight: balanced
+    - name: svm_rbf
+      params:
+        C: 10
+        gamma: scale
+        class_weight: balanced
+    - name: knn
+      params:
+        n_neighbors: 5
+        metric: euclidean
+    - name: random_forest_custom
+      params:
+        n_trees: 200
+        max_depth: 10
+        min_samples_split: 2
+    - name: lightgbm
+      params:
+        n_estimators: 200
+        max_depth: 6
+        learning_rate: 0.1
+        num_leaves: 31
+        class_weight: balanced
+    - name: xgboost
+      params:
+        n_estimators: 200
+        max_depth: 6
+        learning_rate: 0.1
+
 training:
-  train_size: 0.7
+  train_size: 0.70
   val_size: 0.15
   test_size: 0.15
   cv_folds: 5
   stratify: true
+
 targets:
-- activity
-- distortion
+  - activity
+  - distortion
+
 data_path: tabular
+
+# Clip settings — used only when data_path: clip (Group C neural pipeline).
 clip:
   clip_len: 16
   frame_size:
-  - 112
-  - 112
+    - 112
+    - 112
   sampling: uniform
+
 embedding:
   backbone: resnet18_2d
   pretrained: false
   embedding_dim: 512
   pooling: mean
+
+smoothing:
+  enabled: false
+  method: majority_vote   # majority_vote | ema
+  ema_alpha: 0.7

@@ -1,25 +1,44 @@
 extends: base.yaml
+
 experiment:
   name: group_d_hybrid_fusion
-  description: Hybrid handcrafted + CNN embedding fusion
+  description: >
+    Hybrid pipeline: distortion-aware preprocessing + full handcrafted
+    feature set + CNN embedding fusion via LightGBM.
+    Tests whether combining handcrafted and learned representations
+    improves over either alone (Groups B vs C vs D).
   group: D
+
 preprocessing:
   type: distortion_aware
+  # distortion_aware_params inherited from base.yaml.
+
 features:
   modules:
-  - trajectory
-  - circular_motion
-  - kinematics
-  - shape
-  - wavelet
-  - interaction
+    - trajectory
+    - circular_motion
+    - kinematics
+    - shape
+    - wavelet
+    - interaction
+
+# LightGBM is the fusion classifier (operates on concatenated
+# handcrafted + CNN embedding feature vectors).
 models:
   active:
-  - name: lightgbm
-    params:
-      n_estimators: 200
-      max_depth: 6
-      learning_rate: 0.1
+    - name: lightgbm
+      params:
+        n_estimators: 200
+        max_depth: 6
+        learning_rate: 0.1
+        num_leaves: 31
+        class_weight: balanced
+    - name: xgboost
+      params:
+        n_estimators: 200
+        max_depth: 6
+        learning_rate: 0.1
+
 targets:
-- activity
-- distortion
+  - activity
+  - distortion

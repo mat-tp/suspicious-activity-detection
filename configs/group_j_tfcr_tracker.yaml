@@ -1,0 +1,96 @@
+# =============================================================================
+# group_j_tfcr_tracker.yaml  —  Best-system configuration (Group J)
+#
+# Inheritance chain:
+#   group_j_tfcr_tracker.yaml
+#     → group_i_adaptive_mog2.yaml   (adaptive detection + distortion-aware preprocessing)
+#       → base.yaml                  (all defaults)
+#
+# Research question:
+#   Group I established the strongest classical pipeline:
+#     adaptive MOG2 + distortion-aware preprocessing + full feature set.
+#   Group J asks: does replacing the IoU+Hungarian tracker with the
+#   VOT state-of-the-art TFCR tracker (Yuan et al. 2020) further improve
+#   activity recognition accuracy on authentically distorted surveillance video?
+#
+# What this group adds over Group I:
+#   1. TFCR tracker  — target-focusing convolutional regression tracker
+#                      (Yuan et al. 2020).  TFCR achieved the highest AUC
+#                      at spatial scale 1/4 on AD-SVD (Gomez-Nieto et al.
+#                      2022, Fig. 14a), making it the strongest published
+#                      tracker for authentically distorted surveillance video.
+#   2. enable_multifamily — explicitly declared here because run.py's implicit
+#                      group-name check applies only to group == "I"; Group J
+#                      must set this flag to activate multi-family blending.
+#
+# What Group J inherits unchanged from Group I:
+#   - AdaptiveMOG2 detector (quality-guided per-frame threshold relaxation)
+#   - Distortion-aware preprocessing (blur + exposure enhancement)
+#   - Full six-module feature set (trajectory, circular_motion, kinematics,
+#     shape, wavelet, interaction)
+#   - Multi-family blending (enabled via enable_multifamily below)
+#   - RF + LightGBM + XGBoost model suite
+#   - Both activity and distortion classification targets
+#
+# Usage:
+#   python run.py --config group_j_tfcr_tracker --target activity
+#   python run.py --config group_j_tfcr_tracker --target both
+# =============================================================================
+
+extends: group_i_adaptive_mog2.yaml
+
+experiment:
+  name: group_j_tfcr_tracker
+  description: >
+    Best-system configuration: Group I pipeline (adaptive MOG2 + distortion-aware
+    preprocessing + multi-family feature blending) with the TFCR target-focusing
+    convolutional regression tracker (Yuan et al. 2020) replacing IoU+Hungarian.
+    TFCR achieved the highest AUC on AD-SVD at spatial scale 1/4 (Gomez-Nieto
+    et al. 2022, Fig. 14a), making it the VOT state-of-the-art baseline for
+    authentically distorted surveillance video. Compares directly against Group I
+    to isolate the contribution of the TFCR tracker over IoU+Hungarian tracking.
+  group: J
+
+# ── Detection ─────────────────────────────────────────────────────────────────
+# Inherited from group_i_adaptive_mog2.yaml — no override needed.
+# AdaptiveMOG2 (type: adaptive_mog2) with quality-guided threshold relaxation
+# feeds cleaner bounding boxes into TFCR, giving the appearance model
+# higher-quality initialisation patches.
+
+# ── Preprocessing ─────────────────────────────────────────────────────────────
+# Inherited from group_i_adaptive_mog2.yaml — no override needed.
+# type: distortion_aware with full distortion_aware_params from base.yaml.
+
+# ── Tracking ──────────────────────────────────────────────────────────────────
+# TFCR replaces IoU+Hungarian from Group I.
+# min_trajectory_len raised to 30 (vs 15 in base): TFCR's appearance model
+# sustains tracks longer than IoU matching under distortion, so a stricter
+# minimum filters fragments without discarding genuine trajectories.
+tracking:
+  type: tfcr
+  max_disappeared: 30
+  max_trajectory_len: 300
+  min_trajectory_len: 30
+  tfcr:
+    iou_threshold: 0.3 # IoU gate for initial detection association
+    eta: 0.5 # target-focusing strength (η in J(w) loss, Eq. 3)
+    lam: 0.0001 # ridge regularisation weight (λ)
+    lr: 0.02 # online learning rate for filter update
+    scale_factors: # β scale candidates for size estimation (TFCR §3.3)
+      - 0.95
+      - 1.0
+      - 1.05
+    hog_cell: 8 # HOG cell size (px); matches TFCR training convention
+
+# ── Features ──────────────────────────────────────────────────────────────────
+# modules list is inherited from group_i_adaptive_mog2.yaml (deep-merge keeps it).
+# enable_multifamily MUST be stated explicitly: run.py's implicit activation
+# only checks group == "I"; Group J requires the flag here to guarantee that
+# every video produces a feature vector even when TFCR loses all tracks.
+features:
+  enable_multifamily: true
+
+# ── Models and targets ────────────────────────────────────────────────────────
+# Inherited from group_i_adaptive_mog2.yaml:
+#   models: RF-sklearn, LightGBM, XGBoost
+#   targets: activity, distortion

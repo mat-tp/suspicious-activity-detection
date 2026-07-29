@@ -1,12 +1,45 @@
 extends: base.yaml
+
 experiment:
   name: group_c_neural_baselines
-  description: Neural video models on frame clips
+  description: >
+    Neural video models on raw frame clips.
+    COMPARISON group — NOT the primary contribution.
+    Results reported separately from classical pipeline groups A/B.
   group: C
+
 data_path: clip
+
+# No handcrafted features — clips are fed directly to neural models.
 features:
   modules: []
+
+# All three neural architectures.
+# These are only processed by train_and_evaluate_clips() — the tabular
+# pipeline ignores them because data_path == "clip".
 models:
-  active: []
+  active:
+    - name: cnn
+      params:
+        epochs: 20
+        batch_size: 8
+        lr: 0.0005
+    - name: cnn_lstm
+      params:
+        hidden_size: 256
+        num_layers: 1
+        epochs: 20
+        batch_size: 8
+        lr: 0.0005
+    - name: cnn3d
+      params:
+        backbone: r3d_18
+        pretrained: false
+        epochs: 20
+        batch_size: 4
+        lr: 0.0005
+
+# Neural models only support activity classification (distortion label is
+# not encoded in clip arrays — it would need a separate label source).
 targets:
-- activity
+  - activity

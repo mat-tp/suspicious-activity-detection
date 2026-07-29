@@ -1,0 +1,9 @@
+extends: base.yaml
+experiment:
+  name: dataset_analysis
+  description: Analyze dataset properties to justify parameters
+  group: ANALYSIS
+dataset:
+  use_dataset_info: true
+  generate_statistics: true
+  justify_parameters: true

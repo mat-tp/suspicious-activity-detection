@@ -1,0 +1,63 @@
+extends: base.yaml
+
+experiment:
+  name: group_h_optical_flow_detector
+  description: >
+    Dense optical flow detection — no background model, no ground truth.
+    Tests robustness to distortion (illumination and blur) independently of MOG2.
+  group: H
+
+preprocessing:
+  type: standard
+  enabled: true
+  distortion_aware: false # keep it pure, no enhancement
+
+detection:
+  type: dense_flow
+  dense_flow:
+    magnitude_threshold: 2.0
+    min_contour_area: 500
+    morph_close_iter: 2
+    morph_open_iter: 1
+    pyr_scale: 0.5
+    levels: 3
+    winsize: 15
+    iterations: 3
+    poly_n: 5
+    poly_sigma: 1.2
+    adaptive_threshold: true
+
+tracking:
+  type: iou_hungarian
+  iou_hungarian:
+    iou_threshold: 0.3
+
+features:
+  modules:
+    - trajectory
+    - circular_motion
+    - kinematics
+    - shape
+    - interaction
+
+models:
+  active:
+    - name: random_forest_sklearn
+      params:
+        n_estimators: 200
+        max_depth: null
+        class_weight: balanced
+    - name: lightgbm
+      params:
+        n_estimators: 200
+        max_depth: 6
+        learning_rate: 0.1
+    - name: xgboost
+      params:
+        n_estimators: 200
+        max_depth: 6
+        learning_rate: 0.1
+
+targets:
+  - activity
+  - distortion

@@ -1,0 +1,26 @@
+extends: group_a_classical.yaml
+
+experiment:
+  name: group_g_feature_comparison
+  description: >
+    Feature comparison: blob-based trajectory features vs dense
+    trajectory features (HOG + HOF + MBH descriptors).
+    Justifies the choice of blob-based features in Groups A/B over
+    computationally expensive dense trajectory extraction.
+  group: G
+
+features:
+  modules:
+    - trajectory   # blob-based (primary approach)
+  dense_trajectories:
+    enabled: true
+    step_size: 5
+    block_size: 32
+    feature_types:
+      - trajectory
+      - hog
+      - hof
+      - mbh
+  compare_approaches: true   # run.py runs both and reports side-by-side
+
+# Models inherited from group_a_classical (which inherits all from base).

@@ -1,139 +1,104 @@
-# Detection of Suspicious Activities in Public Spaces
+# Distortion-Aware Suspicious Activity Detection — Modular Layout
 
-### Tshephang P-A-N Matlala
+Refactored from a single ~6,200-line `run.py` into a package, now further
+split into `processing/`, `models/`, and `viz/` sub-packages. **Behavior is
+unchanged** — same CLI, same configs, same results — only the file layout
+changed, plus the Group C (neural) GPU/throughput fixes (DataLoader workers,
+pinned memory, non_blocking transfers, mixed precision) are included.
 
-#### University of Johannesburg — ACSSE
+## Running it
 
----
+Nothing about usage changes. From the project root:
 
-# Introduction
+```bash
+python run.py --config group_a_classical --target activity
+python run.py --config group_c_neural --target activity --sample
+python run.py --all-groups --target activity
+python run.py --list-configs
+python run.py --list-components
+```
 
-Public surveillance systems are increasingly used to improve safety and monitor suspicious human activities in crowded or sensitive environments. Most modern approaches rely heavily on deep learning models, which often require large datasets, powerful hardware, and significant computational resources.
+`run.py` at the project root is a thin entry point — all logic lives in `src/`.
 
-This project investigates whether classical computer vision techniques can still perform effectively for suspicious activity recognition under difficult real-world conditions such as focus blur and exposure distortions.
+## Layout
 
-The system evaluates suspicious activity recognition using:
+```
+project/
+├── run.py                      thin entry point (`from src.cli import main`)
+├── requirements.txt
+├── README.md
+└── src/
+    ├── __init__.py
+    ├── common.py                all third-party imports, optional-dependency
+    │                            flags (TORCH_AVAILABLE, etc.), logging
+    ├── paths.py                  PROJECT_ROOT, CONFIGS_DIR, etc. (mutable —
+    │                            reassigned at runtime by cli.main())
+    ├── interfaces.py             core interfaces / shared type aliases
+    ├── registry.py                register/build/available component registry
+    ├── config.py                  Config, load_config, DatasetInfoHandler,
+    │                             base config dict, create_default_configs
+    ├── experiment.py               experiment runner utilities + ExperimentRunner
+    ├── cli.py                      main() / argparse CLI
+    │
+    ├── processing/                 detection, tracking, feature & pipeline code
+    │   ├── preprocessing.py         preprocessors (standard / distortion-aware)
+    │   ├── detectors.py             MOG2, adaptive MOG2, ground-truth,
+    │   │                           optical-flow/frame-diff/cascade detectors
+    │   ├── trackers.py              centroid, IoU+Hungarian, SORT, TFCR
+    │   ├── optical_flow.py          dense optical flow helpers
+    │   ├── features.py              feature extractors + aggregation
+    │   ├── pipeline.py              pipeline builder/runner, multi-family
+    │   │                           features, explainability visualizer
+    │   └── smoothing.py             temporal smoother (post-processing)
+    │
+    ├── models/                     every trainable model
+    │   ├── classic.py               from-scratch decision tree/RF + classical
+    │   │                           wrappers (SVM, KNN, RF, LightGBM, XGBoost)
+    │   └── neural.py                Group C: CNN / CNN+LSTM / 3D-CNN — includes
+    │                               the GPU throughput fixes (DataLoader workers,
+    │                               pinned memory, non_blocking, mixed precision)
+    │
+    └── viz/                         everything that produces a plot/visual
+        ├── plotting.py               plot manager (matplotlib/seaborn)
+        └── fiftyone_viz.py           FiftyOne visualisation
+```
 
-- Background subtraction
-- Object tracking
-- Optical flow analysis
-- Trajectory-based motion analysis
-- Classical machine learning classifiers
+Each module imports everything it needs via `from <path> import *`, chained in
+the same dependency order as the original section numbering, so nothing had
+to be manually re-traced symbol-by-symbol. Cross-package imports use the
+expected relative dots, e.g. `src/models/neural.py` reaches
+`src/processing/pipeline.py` via `from ..processing.pipeline import *`.
 
-The project uses the **AD-SVD (Activity Detection under Surveillance Video Distortions)** dataset, which contains surveillance videos under four distortion conditions:
+### The one subtlety: mutable path globals
 
-- Pristine
-- Exposure distortion
-- Focus blur
-- Combined exposure and focus distortion
+`cli.main()` resolves the real project root at runtime and overwrites
+`PROJECT_ROOT`, `CONFIGS_DIR`, etc. (exactly like the original script did with
+`global`). Because those are read from other modules too (`config.py`,
+`processing/detectors.py`, `experiment.py`), those files import the `paths`
+module itself (`from . import paths` / `from .. import paths`) and reference
+`paths.CONFIGS_DIR` etc. instead of a plain name, so they always see the live
+value after `main()` updates it.
 
-The research focuses on understanding how visual distortions affect classification performance while maintaining a lightweight and interpretable computer vision pipeline.
+## Group C / GPU notes
 
----
+`src/models/neural.py` includes:
+- `_make_loader()` — `DataLoader` with `num_workers`, `pin_memory=True`,
+  `persistent_workers=True`, so CPU-side video decoding overlaps with GPU
+  compute instead of blocking it.
+- `_to_device()` — `.to(device, non_blocking=True)`.
+- `_AmpHelper` — mixed precision (`autocast` + `GradScaler`), which helps
+  most on lower-VRAM GPUs by cutting memory pressure.
 
-# Project Overview
+These only affect speed, not results — same architectures, same optimizer
+config, same train/val split logic as before.
 
-This project implements a classical computer vision pipeline for detecting and classifying suspicious human activities in surveillance videos.
-
-### Core techniques used
-
-1. **MOG2 Background Subtraction**  
-   Separates moving foreground objects from the background.
-
-2. **Centroid Tracking**  
-   Tracks detected moving objects across frames.
-
-3. **Lucas–Kanade Optical Flow**  
-   Estimates motion direction and movement dynamics.
-
-4. **Trajectory Analysis**  
-   Tracks object movement patterns over time.
-
-5. **Feature Extraction**  
-   Extracts handcrafted trajectory and motion features.
-
-6. **Machine Learning Classification**  
-   Uses:
-   - SVM
-   - K-NN
-   - Random Forest
-
----
-
-# Activity Labels
-
-| Code | Activity                      |
-| ---- | ----------------------------- |
-| LPP  | Leaving a package unattended  |
-| PO   | Passing out                   |
-| PW   | Prowling                      |
-| PPP  | Person pushing another person |
-| RK   | Robbery with a knife          |
-| FG   | Group fighting                |
-
----
-
-# Distortion Types
-
-| Code | Distortion                  |
-| ---- | --------------------------- |
-| Pri  | Pristine                    |
-| Exp  | Exposure distortion         |
-| Fo   | Focus blur                  |
-| ExFo | Exposure + Focus distortion |
-
----
-
-# Project Setup
+## Installing dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-# Usage
-
-## Train and evaluate classifiers
-
-```bash
-python train_and_evaluate.py
-```
-
-## Feature Extraction
-
-- Per-track features
-- Trajectory length
-- Total distance
-- Net displacement
-- Straightness
-- Mean speed
-- Maximum speed
-- Speed variance
-- Direction statistics
-- Bounding-box area
-- Optical flow magnitude
-- Optical flow direction
-- Video-level aggregation
-
-### The extracted trajectory features are aggregated into video-level descriptors using:
-
-- Mean
-- Maximum
-- Standard deviation
-
-These features are then used for classification.
-
-## Research Contribution
-
-This work investigates:
-
-- The effectiveness of classical computer vision methods for suspicious activity recognition.
-- The impact of visual distortions on recognition performance.
-- The practicality of lightweight surveillance systems in environments where deep learning may not be feasible.
-
-Unlike many existing studies, this project specifically evaluates traditional approaches under degraded surveillance conditions using the AD-SVD dataset
-
-## Acknowledgements
-
-1. University of Johannesburg — Academy of Computer Science and Software Engineering (ACSSE)
-2. Supervision and academic guidance provided by Dr. Moodley
-3. Dataset used: AD-SVD (Activity Detection under Surveillance Video Distortions)
+Everything below `torch`/`torchvision` in `requirements.txt` is optional —
+the script detects missing packages and simply disables the corresponding
+models/features (you'll see a `WARNING ... not installed` log line, not a
+crash).

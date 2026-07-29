@@ -1,0 +1,69 @@
+extends: base.yaml
+
+experiment:
+  name: group_i_adaptive_mog2
+  description: >
+    Confidence-driven adaptive MOG2 detector (Group I — revised).
+    Runs MOG2 at normal var_threshold first, scores the resulting mask
+    on coverage/fragmentation/blob-size, then re-runs at a smoothly
+    interpolated relaxed threshold only when the mask quality is poor.
+    Compared against Group A (fixed MOG2) to isolate the benefit of
+    feedback-driven adaptation over blind threshold relaxation.
+  group: I
+
+preprocessing:
+  type: distortion_aware
+  # distortion_aware_params inherited from base.yaml
+
+detection:
+  type: adaptive_mog2
+  mog2:
+    history: 20
+    var_threshold: 25
+    detect_shadows: false
+  adaptive_mog2:
+    relaxed_var_threshold: 10.0 # floor threshold under full relaxation
+    quality_threshold: 0.4 # below this score, adaptation triggers
+  morphology:
+    close_iter: 2
+    open_iter: 1
+  min_contour_area: 500
+
+tracking:
+  type: iou_hungarian
+  iou_hungarian:
+    iou_threshold: 0.3
+  # max_disappeared, max/min_trajectory_len inherited from base
+
+features:
+  modules:
+    - trajectory
+    - circular_motion
+    - kinematics
+    - shape
+    - wavelet
+    - interaction
+
+models:
+  active:
+    - name: random_forest_sklearn
+      params:
+        n_estimators: 200
+        max_depth: null
+        class_weight: balanced
+    - name: lightgbm
+      params:
+        n_estimators: 200
+        max_depth: 6
+        learning_rate: 0.1
+        num_leaves: 31
+        class_weight: balanced
+    - name: xgboost
+      params:
+        n_estimators: 200
+        max_depth: 6
+        learning_rate: 0.1
+
+targets:
+  - activity
+  - distortion

@@ -1,17 +1,25 @@
 extends: base.yaml
+
 experiment:
   name: legacy_centroid_reference
-  description: Legacy centroid tracker reference for regression testing
+  description: >
+    Legacy centroid tracker — regression test reference only.
+    Used to verify Group F ablation results against the original
+    centroid implementation. Do NOT use for paper results.
   group: REF
+
 tracking:
   type: centroid
+  # Other tracking params inherited from base.
+
 features:
   modules:
-  - trajectory
+    - trajectory
+
 models:
   active:
-  - name: random_forest_sklearn
-    params:
-      n_estimators: 200
-      max_depth: null
-      class_weight: balanced
+    - name: random_forest_sklearn
+      params:
+        n_estimators: 200
+        max_depth: null
+        class_weight: balanced

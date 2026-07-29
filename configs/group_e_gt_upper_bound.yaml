@@ -1,29 +1,48 @@
 extends: base.yaml
+
 experiment:
   name: group_e_ground_truth_upper_bound
-  description: GT bounding boxes + IoU tracker + full features
+  description: >
+    Ground-truth bounding boxes + IoU tracker + full feature set.
+    UPPER BOUND — establishes the performance ceiling of the pipeline
+    when detection is perfect. Gap between Group E and Groups A/B
+    quantifies the cost of imperfect MOG2 detection.
   group: E
+
 detection:
   type: ground_truth
   ground_truth:
-    fallback_to_mog2: true
+    fallback_to_mog2: true   # fall back to MOG2 if GT file missing
+
+# Use full feature set — same as Group B but with GT detections.
 features:
   modules:
-  - trajectory
-  - circular_motion
-  - kinematics
-  - shape
-  - wavelet
-  - interaction
+    - trajectory
+    - circular_motion
+    - kinematics
+    - shape
+    - wavelet
+    - interaction
+
+# Primary models for the upper-bound comparison.
+# RF and LGB are sufficient; SVM/KNN/custom-RF results are less meaningful
+# in an upper-bound context (they are reported in Groups A/B already).
 models:
   active:
-  - name: random_forest_sklearn
-    params:
-      n_estimators: 200
-      max_depth: null
-      class_weight: balanced
-  - name: lightgbm
-    params:
-      n_estimators: 200
-      max_depth: 6
-      learning_rate: 0.1
+    - name: random_forest_sklearn
+      params:
+        n_estimators: 200
+        max_depth: null
+        class_weight: balanced
+    - name: lightgbm
+      params:
+        n_estimators: 200
+        max_depth: 6
+        learning_rate: 0.1
+        num_leaves: 31
+        class_weight: balanced
+    - name: xgboost
+      params:
+        n_estimators: 200
+        max_depth: 6
+        learning_rate: 0.1

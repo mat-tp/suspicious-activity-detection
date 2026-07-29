@@ -1,0 +1,26 @@
+extends: group_a_classical.yaml
+
+experiment:
+  name: group_f_tracking_ablation
+  description: >
+    Tracking ablation study: Centroid vs IoU+Hungarian vs SORT.
+    Compares three tracker implementations at four minimum trajectory
+    length thresholds to justify the choice of IoU+Hungarian in Group A.
+  group: F
+
+# Ablation config — run.py reads tracking_ablation.enabled and iterates
+# methods/compare_min_lengths internally when this flag is true.
+tracking_ablation:
+  enabled: true
+  methods:
+    - centroid
+    - iou_hungarian
+    - sort
+  compare_min_lengths:
+    - 15
+    - 30
+    - 45
+    - 60
+
+# Models inherited from group_a_classical (which inherits all from base).
+# trajectory features only (Group A baseline feature set).

@@ -1,0 +1,124 @@
+# =============================================================================
+# full_benchmark.yaml  —  Complete benchmark across all Groups A–G.
+#
+# Usage:
+#   python run.py --config full_benchmark --target activity
+#   python run.py --config full_benchmark --target both
+#
+# Covers:
+#   Tabular pipeline  → all classical + boosting models (this config)
+#   Neural pipeline   → run group_c_neural separately (data_path: clip)
+#
+# Multi-seed sweep (shell loop):
+#   for SEED in 42 1337 2026; do
+#     cp full_benchmark.yaml full_benchmark_s${SEED}.yaml
+#     sed -i "s/seed: 42/seed: ${SEED}/" full_benchmark_s${SEED}.yaml
+#     python run.py --config full_benchmark_s${SEED} --target both
+#   done
+# =============================================================================
+
+extends: base.yaml
+
+experiment:
+  name: full_benchmark
+  description: >
+    Complete tabular-pipeline benchmark: all Groups A–G feature sets,
+    all classical and boosting models, both activity and distortion targets.
+    GT upper-bound (Group E) and ablation groups (F, G) results are
+    comparable in one leaderboard because they share this config's splits.
+  group: ALL
+  seed: 42
+
+dataset:
+  n_random_videos_per_group: 5   # respected only when --sample is passed
+
+# Distortion-aware preprocessing — the primary contribution.
+# distortion_aware_params inherited from base.yaml (no need to repeat).
+preprocessing:
+  type: distortion_aware
+
+# Full feature set — all six modules.
+features:
+  modules:
+    - trajectory       # 14 features  blob-based tracking (PRIMARY)
+    - circular_motion  #  4 features
+    - kinematics       #  8 features
+    - shape            #  5 features
+    - wavelet          #  6 features
+    - interaction      #  7 features
+  aggregation:
+    - mean
+    - max
+    - std
+
+# All classical + boosting models.
+# Neural models (cnn, cnn_lstm, cnn3d) are NOT listed here — they require
+# data_path: clip and run via group_c_neural.yaml.
+models:
+  active:
+    # ── Classical ─────────────────────────────────────────────────────
+    - name: random_forest_sklearn
+      params:
+        n_estimators: 200
+        max_depth: null
+        class_weight: balanced
+
+    - name: random_forest_custom
+      params:
+        n_trees: 200
+        max_depth: 10
+        min_samples_split: 2
+
+    - name: svm_rbf
+      params:
+        C: 10
+        gamma: scale
+        class_weight: balanced
+
+    - name: knn
+      params:
+        n_neighbors: 5
+        metric: euclidean
+
+    # ── Boosting ──────────────────────────────────────────────────────
+    - name: lightgbm
+      params:
+        n_estimators: 200
+        max_depth: 6
+        learning_rate: 0.1
+        num_leaves: 31
+        class_weight: balanced
+
+    - name: xgboost
+      params:
+        n_estimators: 200
+        max_depth: 6
+        learning_rate: 0.1
+
+training:
+  train_size: 0.70
+  val_size: 0.15
+  test_size: 0.15
+  cv_folds: 5
+  stratify: true
+
+targets:
+  - activity
+  - distortion
+
+# Leaderboard ranking metric for model_comparison plots.
+# macro_f1 is preferred for imbalanced multi-class datasets.
+leaderboard:
+  metric: macro_f1
+
+# Temporal ensemble smoothing — off by default.
+smoothing:
+  enabled: false
+  method: majority_vote
+  ema_alpha: 0.7
+
+# Documentation only — not loaded automatically.
+seeds_reference:
+  - 42
+  - 1337
+  - 2026
