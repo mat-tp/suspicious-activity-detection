@@ -37,6 +37,11 @@ src/debug_single_video.py
 # Configuration directory (if intended)
 config/
 
+# Other files
+cli_output.txt
+Instructions.txt
+notes.txt
+
 # Documentation
 docs/*
 docs.zip
